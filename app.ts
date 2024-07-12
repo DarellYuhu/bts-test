@@ -6,17 +6,18 @@ import { sign } from "jsonwebtoken";
 import auth from "./middleware/auth";
 
 const app = express();
+const router = express.Router();
 const prisma = new PrismaClient();
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
-app.get("/", (req, res) => {
+router.get("/", (req, res) => {
   res.json({ message: "Hello World!" });
 });
 
 // login api
-app.post("/login", async (req: Request, res: Response) => {
+router.post("/login", async (req: Request, res: Response) => {
   try {
     const { username, password } = req.body;
     const user = await prisma.user.findUnique({ where: { username } });
@@ -35,7 +36,7 @@ app.post("/login", async (req: Request, res: Response) => {
 });
 
 // registration api
-app.post("/register", async (req: Request, res: Response) => {
+router.post("/register", async (req: Request, res: Response) => {
   try {
     const { email, username, password } = req.body;
     const hashed = await hash(password, 10);
@@ -62,7 +63,7 @@ app.post("/register", async (req: Request, res: Response) => {
 });
 
 // create checklist
-app.post("/checklist", auth, async (req: Request, res: Response) => {
+router.post("/checklist", auth, async (req: Request, res: Response) => {
   try {
     const { name } = req.body;
     const checklist = await prisma.checklist.create({
@@ -77,7 +78,7 @@ app.post("/checklist", auth, async (req: Request, res: Response) => {
 });
 
 // get all
-app.get("/checklist", auth, async (req: Request, res: Response) => {
+router.get("/checklist", auth, async (req: Request, res: Response) => {
   try {
     const checklist = await prisma.checklist.findMany();
     return res.json({ message: "success", checklist });
@@ -87,7 +88,7 @@ app.get("/checklist", auth, async (req: Request, res: Response) => {
 });
 
 // delete checklist
-app.delete(
+router.delete(
   "/checklist/:checklistId",
   auth,
   async (req: Request, res: Response) => {
@@ -111,7 +112,7 @@ app.delete(
 );
 
 // create checklist item
-app.post(
+router.post(
   "/checklist/:checklistId/item",
   auth,
   async (req: Request, res: Response) => {
@@ -137,7 +138,7 @@ app.post(
 );
 
 // get all checklist item
-app.get(
+router.get(
   "/checklist/:checklistId/item",
   auth,
   async (req: Request, res: Response) => {
@@ -156,7 +157,7 @@ app.get(
 );
 
 // get all checklist item by checklist id
-app.get(
+router.get(
   "/checklist/:checklistId/item/:checklistItemId",
   auth,
   async (req: Request, res: Response) => {
@@ -176,7 +177,7 @@ app.get(
 );
 
 // update status
-app.put(
+router.put(
   "/checklist/:checklistId/item/:checklistItemId",
   auth,
   async (req: Request, res: Response) => {
@@ -214,7 +215,7 @@ app.put(
 );
 
 // delete checklist item
-app.delete(
+router.delete(
   "/checklist/:checklistId/item/:checklistItemId",
   auth,
   async (req: Request, res: Response) => {
@@ -239,7 +240,7 @@ app.delete(
 );
 
 // rename item
-app.put(
+router.put(
   "/checklist/:checklistId/item/rename/:checklistItemId",
   auth,
   async (req: Request, res: Response) => {
@@ -261,6 +262,8 @@ app.put(
     }
   }
 );
+
+app.use("/api", router);
 
 app.listen(3000, () => {
   console.log("Server started on port 3000");
